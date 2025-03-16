@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>Battery Alert</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background-color: #ff3b30;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    
+    .alert-container {
+      padding: 20px;
+    }
+    
+    .battery-icon {
+      font-size: 50px;
+      margin-bottom: 10px;
+    }
+    
+    h1 {
+      margin: 0;
+      margin-bottom: 10px;
+    }
+    
+    p {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="alert-container">
+    <div class="battery-icon">🔋</div>
+    <h1>סוללה נמוכה!</h1>
+    <p id="battery-level">רמת הסוללה: <span id="level">0</span>%</p>
+    <p>אנא חבר את המחשב לחשמל</p>
+  </div>
+
+  <script>
+    // קבלת רמת הסוללה מה-URL לתצוגה ראשונית
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialBatteryLevel = urlParams.get('level');
+    
+    // הצגת רמת הסוללה הראשונית
+    document.getElementById('level').textContent = Math.round(initialBatteryLevel);
+    
+    // שימוש ב-API של הדפדפן לקבלת עדכונים על רמת הסוללה
+    navigator.getBattery().then(battery => {
+      // עדכון רמת הסוללה בעת שינוי
+      function updateBatteryLevel() {
+        const level = Math.round(battery.level * 100);
+        document.getElementById('level').textContent = level;
+        
+        // סגירת החלון אם המחשב מחובר לחשמל
+        if (battery.charging) {
+          window.close();
+        }
+      }
+      
+      // עדכון ראשוני
+      updateBatteryLevel();
+      
+      // האזנה לשינויים ברמת הסוללה
+      battery.addEventListener('levelchange', updateBatteryLevel);
+      
+      // האזנה לשינויים במצב הטעינה
+      battery.addEventListener('chargingchange', updateBatteryLevel);
+    });
+  </script>
+</body>
+</html>

@@ -23,17 +23,27 @@
     <script>
       const batteryLevelOutput = document.getElementById('batteryLevelOutput');
       const batteryIndicator = document.getElementById('indicator');
-      navigator.getBattery().then(battery => {
-        updateBattery();
       
-        battery.addEventListener('chargingchange',() =>{updateBattery()});
-        battery.addEventListener('levelchange', () =>{udateBattery()});
+      // פונקציה לעדכון ממשק המשתמש
+      function updateBatteryUI(level, charging) {
+        batteryIndicator.className = charging ? 'charging' : 'notCharging';
+        batteryLevelOutput.innerHTML = `${level}%`;
+        batteryIndicator.style.width = `${level}%`;
+      }
+      
+      // שימוש ב-API של הדפדפן לקבלת מידע על הסוללה
+      navigator.getBattery().then(battery => {
+        updateBatteryUI(Math.round(battery.level * 100), battery.charging);
         
-        function updateBattery(){
-          batteryIndicator.className = battery.charging ? 'charging' : 'notCharging';
-          batteryLevelOutput.innerHTML = `${parseInt(battery.level*100)}%`;
-          batteryIndicator.style.width = `${parseInt(battery.level*100)}%`;
-        }
+        // האזנה לשינויים במצב הטעינה
+        battery.addEventListener('chargingchange', () => {
+          updateBatteryUI(Math.round(battery.level * 100), battery.charging);
+        });
+        
+        // האזנה לשינויים ברמת הסוללה
+        battery.addEventListener('levelchange', () => {
+          updateBatteryUI(Math.round(battery.level * 100), battery.charging);
+        });
       });
     </script>
   </body>

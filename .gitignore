@@ -65,3 +65,5 @@ typings/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+out 

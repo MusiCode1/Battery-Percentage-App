@@ -1,59 +1,99 @@
-const electron = require('electron')
-const app = electron.app
-// Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow
+const electron = require("electron");
+const { app, BrowserWindow, Tray, nativeImage, Menu } = electron;
+const path = require("path");
+const url = require("url");
 
-const path = require('path')
-const url = require('url')
+const batteryMonitor = require("./app/battery-monitor");
 
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is garbage collected.
-let mainWindow
+// שמירת התייחסות גלובלית לחלונות ולסיסטם טריי
+let mainWindow;
+let tray;
+let isQuitting = false;
+const isDebugMode = process.env.DEBUG_BATTERY === "true";
+console.log("Debug mode:", isDebugMode);
 
-function createWindow () {
-  // Create the browser window.
-  mainWindow = new BrowserWindow({width: 150, height: 120,transparent: true, frame: false,resizable:false})
+// יצירת החלון הראשי
+function createWindow() {
+  mainWindow = new BrowserWindow({
+    width: 150,
+    height: 120,
+    transparent: true,
+    frame: false,
+    resizable: false,
+    icon: path.join(__dirname, "app/power.png"),
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+  });
 
-  // and load the index.html of the app.
-  mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'app/index.html'),
-    protocol: 'file:',
-    slashes: true
-  }))
+  mainWindow.loadURL(
+    url.format({
+      pathname: path.join(__dirname, "app/index.html"),
+      protocol: "file:",
+      slashes: true,
+    })
+  );
 
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+  if (isDebugMode) {
+    mainWindow.webContents.openDevTools({ mode: "detach" });
+  }
 
-  // Emitted when the window is closed.
-  mainWindow.on('closed', function () {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
-    mainWindow = null
-  })
+  mainWindow.on("closed", function () {
+    mainWindow = null;
+  });
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
-
-// Quit when all windows are closed.
-app.on('window-all-closed', function () {
-  // On OS X it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
-    app.quit()
+function toggleWindow() {
+  if (mainWindow) {
+    mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
   }
-})
+}
 
-app.on('activate', function () {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
+// יצירת אייקון בסיסטם טריי
+function createTray() {
+  const icon = nativeImage.createFromPath(
+    path.join(__dirname, "app/power.png")
+  );
+  tray = new Tray(icon);
+
+  tray.setToolTip("Battery Monitor");
+  tray.on("click", toggleWindow);
+
+  tray.setContextMenu(
+    Menu.buildFromTemplate([
+      { label: "הצג / הסתר את סמל הסוללה על המסך", click: toggleWindow },
+      { label: "Exit", click: () => app.quit() },
+    ])
+  );
+}
+
+// אתחול האפליקציה
+app.on("ready", () => {
+  createWindow();
+  createTray();
+
+  // אתחול מודול ניטור הסוללה
+  batteryMonitor.init(isDebugMode);
+});
+
+// מניעת סגירת האפליקציה כשהמשתמש סוגר את החלון הראשי
+app.on("window-all-closed", (event) => {
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
+});
+
+app.on("activate", function () {
   if (mainWindow === null) {
-    createWindow()
+    createWindow();
   }
-})
+});
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
+// סימון שהאפליקציה נסגרת כדי לאפשר סגירת החלון המוסתר
+app.on("before-quit", () => {
+  isQuitting = true;
+  batteryMonitor.cleanup();
+});
