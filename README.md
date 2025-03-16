@@ -37,11 +37,25 @@ npm -v
 
 ## התקנת הפרויקט
 
-1. הורד את קבצי הפרויקט או שבט (clone) את המאגר מ-GitHub:
+1. הורד את קבצי הפרויקט באחת מהדרכים הבאות:
+
+### אפשרות 1: שימוש ב-Git (אם Git מותקן במחשב)
 
 ```powershell
 git clone https://github.com/Deng78/Battery-Percentage-App.git
 cd Battery-Percentage-App
+```
+
+### אפשרות 2: הורדה ישירה כקובץ ZIP (אם Git אינו מותקן)
+
+1. פתח את הדפדפן ועבור לכתובת: [https://github.com/Deng78/Battery-Percentage-App](https://github.com/Deng78/Battery-Percentage-App)
+2. לחץ על כפתור "Code" (כפתור ירוק) בצד ימין למעלה
+3. בחר באפשרות "Download ZIP" מהתפריט הנפתח
+4. לאחר סיום ההורדה, חלץ את קובץ ה-ZIP לתיקייה כלשהי במחשב
+5. פתח את PowerShell או Command Prompt ונווט לתיקייה שאליה חילצת את הקבצים:
+
+```powershell
+cd path\to\Battery-Percentage-App
 ```
 
 2. התקן את כל התלויות הנדרשות:
